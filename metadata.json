@@ -1,0 +1,5 @@
+{
+  "name": "Triastrix 3D Geometry",
+  "description": "Triastrix allows you to create and manipulate points, lines, planes, vectors, solids, and perform advanced geometric calculations in a 3D environment. It is a lightweight, open, and developer-friendly alternative to tools like GeoGebra 3D.",
+  "requestFramePermissions": []
+}
