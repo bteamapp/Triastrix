@@ -1,6 +1,6 @@
 
 # Triastrix 
-An open-source 3D geometric construction tool built with **React + React Three Fiber**.  
+An open-source 3D geometric construction tool built with **React**.  
 Triastrix allows you to create and manipulate points, lines, planes, vectors, solids, and perform advanced geometric calculations such as distances, angles, areas, intersections, and volumes — similar to GeoGebra 3D, but lighter, open, and developer-friendly.
 
 ## Features
