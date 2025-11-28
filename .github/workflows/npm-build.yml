@@ -7,6 +7,8 @@
 #  Full text: https://www.gnu.org/licenses/agpl-3.0.en.html
 # ==============================================================================
 
+
+
 name: Build project
 
 on:
@@ -41,33 +43,40 @@ jobs:
         run: npm run build
 
       # ---------------------------------------------
-      # Save built dist before switching branches
+      # Save built dist
       # ---------------------------------------------
       - name: Save dist artifact
         run: |
           mkdir -p /tmp/dist
           cp -r dist/* /tmp/dist/
 
-      - name: Switch to main
-        run: git checkout main
-
       # ---------------------------------------------
-      # Replace dist with built version
+      # Create new branch for dist
       # ---------------------------------------------
-      - name: Replace dist
+      - name: Create dist branch
         run: |
+          BRANCH_NAME="update-dist-${GITHUB_SHA::8}"
+          git checkout -b $BRANCH_NAME
           rm -rf dist
           mkdir -p dist
           cp -r /tmp/dist/* dist/
-
-      # ---------------------------------------------
-      # Commit and push
-      # ---------------------------------------------
-      - name: Commit and push changes
-        run: |
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -f dist
-          git commit -m "Auto run NPM build dist from commit ${GITHUB_SHA}" || echo "No changes to commit"
-          git push origin main
+          git commit -m "Auto build dist for commit ${GITHUB_SHA}"
+          git push origin $BRANCH_NAME
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # ---------------------------------------------
+      # Open a Pull Request
+      # ---------------------------------------------
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v5
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: "Auto build dist for commit ${GITHUB_SHA}"
+          branch: "update-dist-${GITHUB_SHA::8}"
+          base: main
+          title: "Update dist folder for commit ${GITHUB_SHA}"
+          body: "This PR updates the built dist folder. Please review and merge."
