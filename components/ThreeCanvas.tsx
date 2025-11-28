@@ -1,8 +1,8 @@
-
-import React, { useRef, useMemo, useEffect } from 'react';
-// FIX: Add a side-effect import to ensure JSX intrinsic elements from @react-three/fiber are registered.
-// This resolves errors like "Property 'mesh' does not exist on type 'JSX.IntrinsicElements'".
+// FIX: All errors in this file were caused by TypeScript failing to recognize react-three-fiber's custom JSX elements (e.g., `<mesh>`).
+// The `@react-three/fiber` side-effect import, which augments the JSX namespace, has been moved to the top of the file.
+// This ensures that the type definitions are loaded before any other code is processed, correctly extending the JSX typings and resolving all related errors.
 import '@react-three/fiber';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, Line as DreiLine, Plane as DreiPlane, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -19,7 +19,9 @@ function PointMesh({ object, isSelected }: { object: Point, isSelected: boolean 
   
   const meshRef = useRef<THREE.Mesh>(null!);
 
-  const isPendingShapePoint = ['plane'].includes(activeTool) && tempShapePoints.includes(object.id);
+  // A point is pending if it's been clicked as part of creating a line or plane
+  const isPendingLinePoint = activeTool === 'line' && tempLinePoints.includes(object.id);
+  const isPendingShapePoint = activeTool === 'plane' && tempShapePoints.includes(object.id);
 
   const handleClick = (e: any) => {
     e.stopPropagation();
@@ -35,8 +37,10 @@ function PointMesh({ object, isSelected }: { object: Point, isSelected: boolean 
       setSelectedObjectId(object.id);
     }
   };
-
-  const materialColor = isSelected ? 'yellow' : isPendingShapePoint ? 'lime' : object.color;
+  
+  // Selection is shown by size, not color.
+  // Pending points for tools have special colors.
+  const materialColor = isPendingLinePoint ? 'cyan' : isPendingShapePoint ? 'lime' : object.color;
 
   return (
     <mesh
@@ -44,8 +48,8 @@ function PointMesh({ object, isSelected }: { object: Point, isSelected: boolean 
       position={object.position}
       onClick={handleClick}
     >
-      <sphereGeometry args={[isSelected ? 0.15 : 0.1, 32, 32]} />
-      <meshStandardMaterial color={materialColor} roughness={0.5} metalness={0.5} />
+      <sphereGeometry args={[isSelected ? 0.0675 : 0.045, 32, 32]} />
+      <meshStandardMaterial color={materialColor} roughness={1} metalness={0} />
     </mesh>
   );
 }
@@ -56,8 +60,8 @@ function LineMesh({ object, points, isSelected }: { object: Line, points: [Point
   return (
     <DreiLine
       points={[points[0].position, points[1].position]}
-      color={isSelected ? 'yellow' : object.color}
-      lineWidth={3}
+      color={object.color}
+      lineWidth={isSelected ? 5 : 3}
       onClick={(e) => {
         e.stopPropagation();
         setSelectedObjectId(object.id);
@@ -96,12 +100,12 @@ function PlaneMesh({ object, points, isSelected }: { object: Plane, points: [Poi
       >
           <planeGeometry args={[50, 50]} />
           <meshStandardMaterial 
-            color={isSelected ? 'yellow' : object.color} 
+            color={object.color} 
             side={THREE.DoubleSide} 
             transparent 
-            opacity={0.5} 
-            roughness={0.2}
-            metalness={0.1}
+            opacity={isSelected ? 0.75 : 0.6} 
+            roughness={1}
+            metalness={0}
           />
       </mesh>
   )
@@ -115,7 +119,13 @@ function SphereMesh({ object, isSelected }: { object: Sphere, isSelected: boolea
       onClick={(e) => { e.stopPropagation(); setSelectedObjectId(object.id); }}
     >
       <sphereGeometry args={[object.radius, 32, 32]} />
-      <meshStandardMaterial color={isSelected ? 'yellow' : object.color} roughness={0.5} metalness={0.5} transparent opacity={0.8} />
+      <meshStandardMaterial 
+        color={object.color} 
+        roughness={1} 
+        metalness={0} 
+        transparent 
+        opacity={isSelected ? 1.0 : 0.8}
+      />
     </mesh>
   );
 }
@@ -133,7 +143,13 @@ function CylinderMesh({ object, isSelected }: { object: Cylinder, isSelected: bo
       onClick={(e) => { e.stopPropagation(); setSelectedObjectId(object.id); }}
     >
       <cylinderGeometry args={[object.radius, object.radius, object.height, 32]} />
-      <meshStandardMaterial color={isSelected ? 'yellow' : object.color} roughness={0.5} metalness={0.5} transparent opacity={0.8} />
+      <meshStandardMaterial 
+        color={object.color}
+        roughness={1}
+        metalness={0}
+        transparent
+        opacity={isSelected ? 1.0 : 0.8}
+      />
     </mesh>
   );
 }
@@ -146,7 +162,13 @@ function BoxMesh({ object, isSelected }: { object: Box, isSelected: boolean }) {
       onClick={(e) => { e.stopPropagation(); setSelectedObjectId(object.id); }}
     >
       <boxGeometry args={object.size} />
-      <meshStandardMaterial color={isSelected ? 'yellow' : object.color} roughness={0.5} metalness={0.5} transparent opacity={0.8} />
+      <meshStandardMaterial 
+        color={object.color}
+        roughness={1}
+        metalness={0}
+        transparent
+        opacity={isSelected ? 1.0 : 0.8}
+      />
     </mesh>
   );
 }
@@ -228,8 +250,9 @@ function Scene() {
 
   return (
     <>
-      <ambientLight intensity={0.6} />
-      <pointLight position={[10, 10, 10]} intensity={1} />
+      <ambientLight intensity={0.5} />
+      <directionalLight position={[10, 10, 10]} intensity={1.5} />
+      <directionalLight position={[-5, -10, -2]} intensity={0.5} />
       <Grid infiniteGrid args={[10, 100]} sectionColor="#555" fadeDistance={50} rotation={planeConfig.rotation} />
       
       {/* Axis Helpers and Labels */}

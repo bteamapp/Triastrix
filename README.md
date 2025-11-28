@@ -8,7 +8,6 @@ Triastrix allows you to create and manipulate points, lines, planes, vectors, so
 ![GitHub Fork](https://img.shields.io/github/forks/bteamapp/Triastrix)
 
 
-
 ## Features
 
 ### Geometric Construction Tools
