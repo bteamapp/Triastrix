@@ -1,3 +1,4 @@
+
 import { create } from 'zustand';
 // FIX: import all geometric object types for use in AddObjectPayload
 import type { Tool, GeometricObject, Point, Line, Plane, Sphere, Cylinder, Box, ConstructionPlane } from '../types';
@@ -20,10 +21,12 @@ interface GeometryState {
   tempLinePoints: string[];
   tempShapePoints: string[];
   constructionPlane: ConstructionPlane;
+  showLabels: boolean;
   
   setActiveTool: (tool: Tool) => void;
   setConstructionPlane: (plane: ConstructionPlane) => void;
   setSelectedObjectId: (id: string | null) => void;
+  toggleLabels: () => void;
   
   // FIX: Use the new AddObjectPayload type
   addObject: (obj: AddObjectPayload) => void;
@@ -48,10 +51,12 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
   tempLinePoints: [],
   tempShapePoints: [],
   constructionPlane: 'xz',
+  showLabels: true,
 
   setActiveTool: (tool) => set({ activeTool: tool, selectedObjectId: null, tempLinePoints: [], tempShapePoints: [] }),
   setConstructionPlane: (plane) => set({ constructionPlane: plane }),
   setSelectedObjectId: (id) => set({ selectedObjectId: id }),
+  toggleLabels: () => set(state => ({ showLabels: !state.showLabels })),
   
   addTempLinePoint: (id) => set(state => ({ tempLinePoints: [...state.tempLinePoints, id] })),
   clearTempLinePoints: () => set({ tempLinePoints: [] }),

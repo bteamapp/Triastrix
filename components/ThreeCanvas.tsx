@@ -1,6 +1,7 @@
+
 import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, Grid, Line as DreiLine, Plane as DreiPlane } from '@react-three/drei';
+import { OrbitControls, Grid, Line as DreiLine, Plane as DreiPlane, Text } from '@react-three/drei';
 import * as THREE from 'three';
 import { useGeometryStore } from '../store/geometryStore';
 import type { Point, Line, Sphere, Cylinder, Box, Plane } from '../types';
@@ -159,6 +160,7 @@ function Scene() {
   const clearTempShapePoints = useGeometryStore(state => state.clearTempShapePoints);
   const setSelectedObjectId = useGeometryStore(state => state.setSelectedObjectId);
   const constructionPlane = useGeometryStore(state => state.constructionPlane);
+  const showLabels = useGeometryStore(state => state.showLabels);
 
   const { camera, raycaster, pointer } = useThree();
 
@@ -226,7 +228,13 @@ function Scene() {
       <ambientLight intensity={0.6} />
       <pointLight position={[10, 10, 10]} intensity={1} />
       <Grid infiniteGrid args={[10, 100]} sectionColor="#555" fadeDistance={50} rotation={planeConfig.rotation} />
+      
+      {/* Axis Helpers and Labels */}
       <axesHelper args={[2]} />
+      <Text position={[2.2, 0, 0]} fontSize={0.25} color="#ff6b6b" anchorX="center" anchorY="middle">X</Text>
+      <Text position={[0, 2.2, 0]} fontSize={0.25} color="#69f0ae" anchorX="center" anchorY="middle">Y</Text>
+      <Text position={[0, 0, 2.2]} fontSize={0.25} color="#81a1c1" anchorX="center" anchorY="middle">Z</Text>
+      
       <OrbitControls makeDefault />
 
       <mesh onClick={handleCanvasClick} visible={false} position={[0,-0.01,0]} rotation-x={-Math.PI/2}>
@@ -237,6 +245,19 @@ function Scene() {
       {points.map(obj => (
           <group key={obj.id}>
             <PointMesh object={obj} isSelected={obj.id === selectedObjectId} />
+            {showLabels && (
+              <Text
+                position={[obj.position[0], obj.position[1] + 0.25, obj.position[2]]}
+                fontSize={0.2}
+                color="white"
+                anchorX="center"
+                anchorY="middle"
+                outlineWidth={0.005}
+                outlineColor="black"
+              >
+                {obj.name}
+              </Text>
+            )}
         </group>
       ))}
 
