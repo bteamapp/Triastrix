@@ -265,15 +265,26 @@ function TempPolygon({ pointIds }: { pointIds: string[] }) {
     
     if (points.length < 2) return null;
 
-    const linePoints = useMemo(() => {
-         const vs = points.map(p => new THREE.Vector3(...p.position));
-         return [...vs, vs[0]]; // Close the loop
-    }, [points]);
+    const isTetrahedron = points.length === 4;
 
     const vertices = useMemo(() => {
         const arr: number[] = [];
-        if (points.length >= 3) {
-            // Simple fan triangulation from first point
+        if (isTetrahedron) {
+            // Tetrahedron faces: (0,1,2), (0,2,3), (0,3,1), (1,3,2)
+            // Note: (0,3,1) closes the side fan. (1,3,2) closes the base/cap.
+            const faces = [
+                [0, 1, 2],
+                [0, 2, 3],
+                [0, 3, 1],
+                [1, 2, 3] 
+            ];
+            for (const face of faces) {
+                for (const idx of face) {
+                    arr.push(...points[idx].position);
+                }
+            }
+        } else if (points.length >= 3) {
+            // Simple fan triangulation from first point for polygons
             for (let i = 1; i < points.length - 1; i++) {
                 arr.push(...points[0].position);
                 arr.push(...points[i].position);
@@ -281,11 +292,31 @@ function TempPolygon({ pointIds }: { pointIds: string[] }) {
             }
         }
         return new Float32Array(arr);
-    }, [points]);
+    }, [points, isTetrahedron]);
+
+    const edges = useMemo(() => {
+        const vs = points.map(p => new THREE.Vector3(...p.position));
+        const lines: THREE.Vector3[][] = [];
+        
+        if (isTetrahedron) {
+             // 6 edges: all pairs for K4
+             for(let i=0; i<4; i++) {
+                 for(let j=i+1; j<4; j++) {
+                     lines.push([vs[i], vs[j]]);
+                 }
+             }
+        } else {
+             // Polygon loop
+             lines.push([...vs, vs[0]]);
+        }
+        return lines;
+    }, [points, isTetrahedron]);
     
     return (
         <group>
-             <DreiLine points={linePoints} color="#ffeb3b" lineWidth={3} dashed={false} />
+             {edges.map((pts, i) => (
+                 <DreiLine key={i} points={pts} color="#ffeb3b" lineWidth={3} />
+             ))}
              {vertices.length > 0 && (
                 <mesh>
                     <bufferGeometry>
@@ -296,7 +327,15 @@ function TempPolygon({ pointIds }: { pointIds: string[] }) {
                             itemSize={3}
                         />
                     </bufferGeometry>
-                    <meshStandardMaterial color="#ffeb3b" transparent opacity={0.3} side={THREE.DoubleSide} />
+                    <meshStandardMaterial 
+                        color="#ffcc00" 
+                        emissive="#ffcc00"
+                        emissiveIntensity={0.5}
+                        transparent 
+                        opacity={0.4} 
+                        side={THREE.DoubleSide} 
+                        depthWrite={false}
+                    />
                 </mesh>
              )}
         </group>
