@@ -1,0 +1,72 @@
+# ==============================================================================
+#  This GitHub Actions workflow is licensed under the GNU Affero General Public 
+#  License v3.0 (AGPL-3.0).
+#
+#  You may copy, modify, and distribute this workflow under the terms of the
+#  AGPL-3.0 license.  
+#  Full text: https://www.gnu.org/licenses/agpl-3.0.en.html
+# ==============================================================================
+
+name: Build and Update Dist on Main
+
+on:
+  push:
+    branches: ["**"]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    # -------------------------------------------------------------
+    # Prevent infinite CI loops:
+    # 1. Skip workflow if the commit author is "github-actions"
+    # 2. Skip if the only change was inside the dist folder
+    # -------------------------------------------------------------
+    if: |
+      github.actor != 'github-actions' &&
+      !contains(join(github.event.head_commit.modified, ','), 'dist/') &&
+      !contains(join(github.event.head_commit.added, ','), 'dist/') &&
+      !contains(join(github.event.head_commit.removed, ','), 'dist/')
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build project
+        run: npm run build
+
+      # ---------------------------------------------
+      # Switch to main branch
+      # ---------------------------------------------
+      - name: Switch to main
+        run: git checkout main
+
+      # ---------------------------------------------
+      # Replace dist folder safely
+      # ---------------------------------------------
+      - name: Replace dist
+        run: |
+          rm -rf dist
+          mkdir -p dist
+          cp -r ${{ github.workspace }}/dist/* dist/
+
+      # ---------------------------------------------
+      # Commit and push changes
+      # ---------------------------------------------
+      - name: Commit and push changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add dist
+          git commit -m "Auto build dist from commit ${GITHUB_SHA}" || echo "No changes to commit"
+          git push origin main
