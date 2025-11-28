@@ -1,16 +1,12 @@
 
 import React from 'react';
-import { MousePointer, Circle, Spline, Layers, Undo, Redo, Orbit, Database, Box as BoxIcon } from 'lucide-react';
+import { MousePointer, Circle, Spline, Layers, Orbit, Database, Box as BoxIcon, Ruler } from 'lucide-react';
 import type { Tool, ConstructionPlane } from '../types';
 import { useGeometryStore } from '../store/geometryStore';
 
 interface ToolbarProps {
   activeTool: Tool;
   setActiveTool: (tool: Tool) => void;
-  undo: () => void;
-  redo: () => void;
-  canUndo: boolean;
-  canRedo: boolean;
 }
 
 // FIX: Change icon prop type from React.ElementType to a more specific component type
@@ -30,24 +26,11 @@ const ToolButton: React.FC<{ icon?: React.ComponentType<{ size?: number }>; labe
   </button>
 );
 
-
-// FIX: Change icon prop type from React.ElementType to a more specific component type
-// to fix "Type 'number' is not assignable to type 'never'" error.
-const ActionButton: React.FC<{ icon: React.ComponentType<{ size?: number }>; label: string; onClick: () => void; disabled: boolean; }> = ({ icon: Icon, label, onClick, disabled }) => (
-  <button
-    onClick={onClick}
-    title={label}
-    disabled={disabled}
-    className="w-12 h-12 flex items-center justify-center rounded-lg bg-gray-700 text-gray-300 transition-colors duration-200 enabled:hover:bg-gray-600 enabled:hover:text-white disabled:opacity-50 disabled:cursor-not-allowed"
-  >
-    <Icon size={24} />
-  </button>
-);
-
-
-export default function Toolbar({ activeTool, setActiveTool, undo, redo, canUndo, canRedo }: ToolbarProps) {
+export default function Toolbar({ activeTool, setActiveTool }: ToolbarProps) {
   const constructionPlane = useGeometryStore(state => state.constructionPlane);
   const setConstructionPlane = useGeometryStore(state => state.setConstructionPlane);
+  const toggleCalculator = useGeometryStore(state => state.toggleCalculator);
+  const isCalculatorOpen = useGeometryStore(state => state.isCalculatorOpen);
   
   return (
     <aside className="w-20 bg-gray-800 p-2 flex flex-col items-center space-y-4 shadow-lg z-10">
@@ -76,8 +59,7 @@ export default function Toolbar({ activeTool, setActiveTool, undo, redo, canUndo
 
       <div className="flex-grow"></div>
       <div className="flex flex-col space-y-2">
-         <ActionButton icon={Undo} label="Undo" onClick={undo} disabled={!canUndo} />
-         <ActionButton icon={Redo} label="Redo" onClick={redo} disabled={!canRedo} />
+         <ToolButton icon={Ruler} label="Calculator" isActive={isCalculatorOpen} onClick={toggleCalculator} />
       </div>
     </aside>
   );
