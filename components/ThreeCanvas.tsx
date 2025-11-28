@@ -1,8 +1,8 @@
-import React, { useRef, useMemo, useEffect } from 'react';
-// FIX: The custom JSX elements from @react-three/fiber were not being recognized by TypeScript.
-// Moving the side-effect import after the React import can resolve type augmentation issues
-// by ensuring the base JSX namespace is defined before being extended.
+// FIX: All errors in this file were caused by TypeScript failing to recognize react-three-fiber's custom JSX elements (e.g., `<mesh>`).
+// The `@react-three/fiber` side-effect import, which augments the JSX namespace, has been moved to the top of the file.
+// This ensures that the type definitions are loaded before any other code is processed, correctly extending the JSX typings and resolving all related errors.
 import '@react-three/fiber';
+import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, Line as DreiLine, Plane as DreiPlane, Text } from '@react-three/drei';
 import * as THREE from 'three';
@@ -48,8 +48,8 @@ function PointMesh({ object, isSelected }: { object: Point, isSelected: boolean 
       position={object.position}
       onClick={handleClick}
     >
-      <sphereGeometry args={[isSelected ? 0.15 : 0.1, 32, 32]} />
-      <meshStandardMaterial color={materialColor} roughness={0.4} metalness={0.1} />
+      <sphereGeometry args={[isSelected ? 0.0675 : 0.045, 32, 32]} />
+      <meshStandardMaterial color={materialColor} roughness={1} metalness={0} />
     </mesh>
   );
 }
@@ -104,8 +104,8 @@ function PlaneMesh({ object, points, isSelected }: { object: Plane, points: [Poi
             side={THREE.DoubleSide} 
             transparent 
             opacity={isSelected ? 0.75 : 0.6} 
-            roughness={0.2}
-            metalness={0.1}
+            roughness={1}
+            metalness={0}
           />
       </mesh>
   )
@@ -121,8 +121,8 @@ function SphereMesh({ object, isSelected }: { object: Sphere, isSelected: boolea
       <sphereGeometry args={[object.radius, 32, 32]} />
       <meshStandardMaterial 
         color={object.color} 
-        roughness={0.4} 
-        metalness={0.1} 
+        roughness={1} 
+        metalness={0} 
         transparent 
         opacity={isSelected ? 1.0 : 0.8}
       />
@@ -145,8 +145,8 @@ function CylinderMesh({ object, isSelected }: { object: Cylinder, isSelected: bo
       <cylinderGeometry args={[object.radius, object.radius, object.height, 32]} />
       <meshStandardMaterial 
         color={object.color}
-        roughness={0.4}
-        metalness={0.1}
+        roughness={1}
+        metalness={0}
         transparent
         opacity={isSelected ? 1.0 : 0.8}
       />
@@ -164,8 +164,8 @@ function BoxMesh({ object, isSelected }: { object: Box, isSelected: boolean }) {
       <boxGeometry args={object.size} />
       <meshStandardMaterial 
         color={object.color}
-        roughness={0.4}
-        metalness={0.1}
+        roughness={1}
+        metalness={0}
         transparent
         opacity={isSelected ? 1.0 : 0.8}
       />
