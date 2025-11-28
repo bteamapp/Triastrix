@@ -31,7 +31,7 @@ function PointMesh({ object, isSelected, isCalculationInput }: { object: Point, 
   const handleClick = (e: any) => {
     e.stopPropagation();
     if (isCalculatorOpen) {
-      if (calculationMode === 'distance-point-point') {
+      if (calculationMode === 'distance-point-point' || calculationMode === 'area-polygon') {
         addCalculationInput(object.id);
       }
     } else if (activeTool === 'line') {
@@ -118,9 +118,8 @@ function PlaneMesh({ object, points, isSelected, isCalculationInput }: { object:
   const handleClick = (e: any) => {
     e.stopPropagation();
     if (isCalculatorOpen) {
-      if (calculationMode === 'area-plane') {
-        addCalculationInput(object.id);
-      }
+      // Area calculation for planes is removed in favor of point-based polygon area
+      // but we can keep selection logic if needed later
     } else {
       setSelectedObjectId(object.id);
     }
@@ -258,6 +257,52 @@ function BoxMesh({ object, isSelected, isCalculationInput }: { object: Box, isSe
   );
 }
 
+function TempPolygon({ pointIds }: { pointIds: string[] }) {
+    const objects = useGeometryStore(state => state.present);
+    const points = useMemo(() => 
+        pointIds.map(id => objects.find(o => o.id === id)).filter(o => o?.type === 'point') as Point[], 
+    [pointIds, objects]);
+    
+    if (points.length < 2) return null;
+
+    const linePoints = useMemo(() => {
+         const vs = points.map(p => new THREE.Vector3(...p.position));
+         return [...vs, vs[0]]; // Close the loop
+    }, [points]);
+
+    const vertices = useMemo(() => {
+        const arr: number[] = [];
+        if (points.length >= 3) {
+            // Simple fan triangulation from first point
+            for (let i = 1; i < points.length - 1; i++) {
+                arr.push(...points[0].position);
+                arr.push(...points[i].position);
+                arr.push(...points[i+1].position);
+            }
+        }
+        return new Float32Array(arr);
+    }, [points]);
+    
+    return (
+        <group>
+             <DreiLine points={linePoints} color="#ffeb3b" lineWidth={3} dashed={false} />
+             {vertices.length > 0 && (
+                <mesh>
+                    <bufferGeometry>
+                        <bufferAttribute
+                            attach="attributes-position"
+                            count={vertices.length / 3}
+                            array={vertices}
+                            itemSize={3}
+                        />
+                    </bufferGeometry>
+                    <meshStandardMaterial color="#ffeb3b" transparent opacity={0.3} side={THREE.DoubleSide} />
+                </mesh>
+             )}
+        </group>
+    )
+}
+
 
 function Scene() {
   const {
@@ -273,6 +318,7 @@ function Scene() {
     constructionPlane,
     showLabels,
     calculationInputs,
+    calculationMode,
     isCalculatorOpen
   } = useGeometryStore(useShallow(state => ({
     objects: state.present,
@@ -287,6 +333,7 @@ function Scene() {
     constructionPlane: state.constructionPlane,
     showLabels: state.showLabels,
     calculationInputs: state.calculationInputs,
+    calculationMode: state.calculationMode,
     isCalculatorOpen: state.isCalculatorOpen,
   })));
 
@@ -446,6 +493,10 @@ function Scene() {
             gapSize={0.1}
             lineWidth={2}
          />
+      )}
+
+      {isCalculatorOpen && calculationMode === 'area-polygon' && calculationInputs.length >= 2 && (
+          <TempPolygon pointIds={calculationInputs} />
       )}
     </>
   );

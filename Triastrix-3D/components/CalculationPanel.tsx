@@ -28,7 +28,7 @@ const getInstructions = (mode: CalculationMode) => {
     switch (mode) {
         case 'distance-point-point': return 'Select 2 points in the scene.';
         case 'angle-line-line': return 'Select 2 lines in the scene.';
-        case 'area-plane': return 'Select 1 plane in the scene.';
+        case 'area-polygon': return 'Select points to form a shape (3+ for area, 4 for tetrahedron volume).';
         case 'volume-solid': return 'Select 1 solid (Sphere, Cylinder, or Box).';
         default: return 'Select a calculation type above.';
     }
@@ -67,7 +67,7 @@ export default function CalculationPanel() {
             <div className="grid grid-cols-4 gap-2 my-4">
                 <CalculationButton mode="distance-point-point" label="Distance" icon={ArrowLeftRight} />
                 <CalculationButton mode="angle-line-line" label="Angle" icon={Scale} />
-                <CalculationButton mode="area-plane" label="Area" icon={AreaChart} />
+                <CalculationButton mode="area-polygon" label="Area" icon={AreaChart} />
                 <CalculationButton mode="volume-solid" label="Volume" icon={BoxIcon} />
             </div>
 
@@ -82,7 +82,7 @@ export default function CalculationPanel() {
 
                 {calculationResult && (
                     <div className="mt-2 pt-2 border-t border-gray-700">
-                        <p className="text-lg font-bold text-green-400 text-center">{calculationResult}</p>
+                        <p className="text-lg font-bold text-green-400 text-center whitespace-pre-wrap">{calculationResult}</p>
                     </div>
                 )}
             </div>

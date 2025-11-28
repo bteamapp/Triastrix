@@ -12,10 +12,6 @@ export default function App() {
   const [showWelcomeModal, setShowWelcomeModal] = useState(true);
   const activeTool = useGeometryStore(state => state.activeTool);
   const setActiveTool = useGeometryStore(state => state.setActiveTool);
-  const undo = useGeometryStore(state => state.undo);
-  const redo = useGeometryStore(state => state.redo);
-  const canUndo = useGeometryStore(state => state.past.length > 0);
-  const canRedo = useGeometryStore(state => state.future.length > 0);
   const loadProject = useGeometryStore(state => state.loadProject);
   const isCalculatorOpen = useGeometryStore(state => state.isCalculatorOpen);
 
@@ -61,7 +57,7 @@ export default function App() {
         />
       )}
       <div className="flex h-screen w-screen bg-gray-900 text-gray-200 font-sans">
-        <Toolbar activeTool={activeTool} setActiveTool={setActiveTool} undo={undo} redo={redo} canUndo={canUndo} canRedo={canRedo} />
+        <Toolbar activeTool={activeTool} setActiveTool={setActiveTool} />
         <main className="flex-1 relative">
           <Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-gray-800"><p>Loading 3D Scene...</p></div>}>
             <ThreeCanvas />

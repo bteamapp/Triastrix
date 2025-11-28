@@ -258,22 +258,49 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
             }
           }
           break;
-        case 'area-plane':
-            if (objects.length === 1 && objects[0].type === 'plane') {
-                const plane = objects[0] as Plane;
-                const p1 = present.find(o => o.id === plane.pointIds[0]) as Point;
-                const p2 = present.find(o => o.id === plane.pointIds[1]) as Point;
-                const p3 = present.find(o => o.id === plane.pointIds[2]) as Point;
-                if(p1 && p2 && p3) {
-                    const v1 = new THREE.Vector3(...p1.position);
-                    const v2 = new THREE.Vector3(...p2.position);
-                    const v3 = new THREE.Vector3(...p3.position);
-                    // FIX: `getArea` is an instance method on a Triangle, not a static method.
-                    const triangle = new THREE.Triangle(v1, v2, v3);
-                    result = `Area: ${triangle.getArea().toFixed(3)}`;
-                }
-            }
-            break;
+        case 'area-polygon':
+          // Need at least 2 points for perimeter distance, 3 for area
+          if (objects.length >= 2 && objects.every(o => o.type === 'point')) {
+              const points = objects.map(o => new THREE.Vector3(...(o as Point).position));
+              
+              // Perimeter
+              let perimeter = 0;
+              for(let i=0; i<points.length; i++) {
+                 // Connect last to first to close the loop
+                 perimeter += points[i].distanceTo(points[(i+1) % points.length]);
+              }
+
+              result = `Perimeter: ${perimeter.toFixed(3)}`;
+
+              if (points.length >= 3) {
+                  // Area (Vector area method: 0.5 * |sum(Pi x Pi+1)|)
+                  const areaVector = new THREE.Vector3();
+                  for(let i=0; i<points.length; i++) {
+                      const p1 = points[i];
+                      const p2 = points[(i+1) % points.length];
+                      areaVector.add(new THREE.Vector3().crossVectors(p1, p2));
+                  }
+                  const area = areaVector.length() * 0.5;
+                  result += `\nArea: ${area.toFixed(3)}`;
+              }
+
+              // Volume (Tetrahedron if 4 points)
+              if (points.length === 4) {
+                   const a = points[0];
+                   const b = points[1];
+                   const c = points[2];
+                   const d = points[3];
+                   
+                   const v1 = new THREE.Vector3().subVectors(a, d);
+                   const v2 = new THREE.Vector3().subVectors(b, d);
+                   const v3 = new THREE.Vector3().subVectors(c, d);
+                   
+                   // Scalar triple product / 6
+                   const volume = Math.abs(v1.dot(new THREE.Vector3().crossVectors(v2, v3))) / 6.0;
+                   result += `\nVolume: ${volume.toFixed(3)}`;
+              }
+          }
+          break;
         case 'volume-solid':
             if (objects.length === 1) {
                 const obj = objects[0];
