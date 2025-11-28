@@ -26,21 +26,33 @@ jobs:
       !contains(join(github.event.head_commit.removed, ','), 'dist/')
 
     steps:
+      # ---------------------------------------------
+      # Checkout code with proper credentials
+      # ---------------------------------------------
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          persist-credentials: true  # ensures GITHUB_TOKEN can push
+          persist-credentials: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
-
+      # ---------------------------------------------
+      # Setup Node.js
+      # ---------------------------------------------
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: 18
 
+      # ---------------------------------------------
+      # Install dependencies
+      # ---------------------------------------------
       - name: Install dependencies
         run: npm install
 
+      # ---------------------------------------------
+      # Build project
+      # ---------------------------------------------
       - name: Build project
         run: npm run build
 
@@ -53,7 +65,16 @@ jobs:
           cp -r dist/* /tmp/dist/
 
       # ---------------------------------------------
-      # Create new branch for dist
+      # Fix git push authentication
+      # ---------------------------------------------
+      - name: Set up git auth for push
+        run: |
+          git remote set-url origin https://x-access-token:${GITHUB_TOKEN}@github.com/${{ github.repository }}.git
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      # ---------------------------------------------
+      # Create new branch for dist and push
       # ---------------------------------------------
       - name: Create dist branch
         run: |
@@ -65,13 +86,13 @@ jobs:
           git config user.name "github-actions"
           git config user.email "github-actions@github.com"
           git add -f dist
-          git commit -m "Auto build dist for commit ${GITHUB_SHA}"
+          git commit -m "Auto build dist for commit ${GITHUB_SHA}" || echo "No changes to commit"
           git push origin $BRANCH_NAME
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       # ---------------------------------------------
-      # Open a Pull Request
+      # Open a Pull Request to main
       # ---------------------------------------------
       - name: Create Pull Request
         uses: peter-evans/create-pull-request@v5
@@ -82,3 +103,4 @@ jobs:
           base: main
           title: "Update dist folder for commit ${GITHUB_SHA}"
           body: "This PR updates the built dist folder. Please review and merge."
+
