@@ -8,8 +8,8 @@ const NumberInput: React.FC<{ label: string; value: number; onChange: (val: numb
     <input
       type="number"
       step="0.1"
-      value={value.toFixed(2)}
-      onChange={(e) => onChange(parseFloat(e.target.value) || 0)}
+      value={Number.isFinite(value) ? value : ''}
+      onChange={(e) => onChange(e.target.valueAsNumber || 0)}
       className="w-full ml-2 bg-gray-900 text-sm rounded p-1 text-right focus:outline-none focus:ring-1 focus:ring-blue-500"
     />
   </div>

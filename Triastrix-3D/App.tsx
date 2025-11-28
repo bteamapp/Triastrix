@@ -4,6 +4,7 @@ import Toolbar from './components/Toolbar';
 import Sidebar from './components/Sidebar';
 import ThreeCanvas from './components/ThreeCanvas';
 import WelcomeModal from './components/WelcomeModal';
+import CalculationPanel from './components/CalculationPanel';
 import { useGeometryStore } from './store/geometryStore';
 import type { GeometricObject } from './types';
 
@@ -16,6 +17,7 @@ export default function App() {
   const canUndo = useGeometryStore(state => state.past.length > 0);
   const canRedo = useGeometryStore(state => state.future.length > 0);
   const loadProject = useGeometryStore(state => state.loadProject);
+  const isCalculatorOpen = useGeometryStore(state => state.isCalculatorOpen);
 
   const handleOpenFile = useCallback(() => {
     const input = document.createElement('input');
@@ -64,6 +66,7 @@ export default function App() {
           <Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-gray-800"><p>Loading 3D Scene...</p></div>}>
             <ThreeCanvas />
           </Suspense>
+          {isCalculatorOpen && <CalculationPanel />}
         </main>
         <Sidebar onOpenFile={handleOpenFile} />
       </div>

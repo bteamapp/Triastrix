@@ -2,6 +2,7 @@ import type { Vector3 } from 'three';
 
 export type Tool = 'select' | 'point' | 'line' | 'plane' | 'sphere' | 'cylinder' | 'box';
 export type ConstructionPlane = 'xz' | 'xy' | 'yz';
+export type CalculationMode = 'distance-point-point' | 'angle-line-line' | 'area-plane' | 'volume-solid' | null;
 
 export interface BaseObject {
   id: string;

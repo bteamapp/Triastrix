@@ -6,26 +6,35 @@ import React, { useRef, useMemo, useEffect } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, Line as DreiLine, Plane as DreiPlane, Text } from '@react-three/drei';
 import * as THREE from 'three';
+import { useShallow } from 'zustand/react/shallow';
 import { useGeometryStore } from '../store/geometryStore';
 import type { Point, Line, Sphere, Cylinder, Box, Plane } from '../types';
 
-function PointMesh({ object, isSelected }: { object: Point, isSelected: boolean }) {
-  const activeTool = useGeometryStore(state => state.activeTool);
-  const tempLinePoints = useGeometryStore(state => state.tempLinePoints);
-  const tempShapePoints = useGeometryStore(state => state.tempShapePoints);
-  const setSelectedObjectId = useGeometryStore(state => state.setSelectedObjectId);
-  const addTempLinePoint = useGeometryStore(state => state.addTempLinePoint);
-  const addTempShapePoint = useGeometryStore(state => state.addTempShapePoint);
+function PointMesh({ object, isSelected, isCalculationInput }: { object: Point, isSelected: boolean, isCalculationInput: boolean }) {
+  const { activeTool, tempLinePoints, tempShapePoints, isCalculatorOpen, calculationMode, addTempLinePoint, addTempShapePoint, addCalculationInput, setSelectedObjectId } = useGeometryStore(useShallow(state => ({
+    activeTool: state.activeTool,
+    tempLinePoints: state.tempLinePoints,
+    tempShapePoints: state.tempShapePoints,
+    isCalculatorOpen: state.isCalculatorOpen,
+    calculationMode: state.calculationMode,
+    addTempLinePoint: state.addTempLinePoint,
+    addTempShapePoint: state.addTempShapePoint,
+    addCalculationInput: state.addCalculationInput,
+    setSelectedObjectId: state.setSelectedObjectId,
+  })));
   
   const meshRef = useRef<THREE.Mesh>(null!);
 
-  // A point is pending if it's been clicked as part of creating a line or plane
   const isPendingLinePoint = activeTool === 'line' && tempLinePoints.includes(object.id);
   const isPendingShapePoint = activeTool === 'plane' && tempShapePoints.includes(object.id);
 
   const handleClick = (e: any) => {
     e.stopPropagation();
-    if (activeTool === 'line') {
+    if (isCalculatorOpen) {
+      if (calculationMode === 'distance-point-point') {
+        addCalculationInput(object.id);
+      }
+    } else if (activeTool === 'line') {
       if (!tempLinePoints.includes(object.id)) {
         addTempLinePoint(object.id);
       }
@@ -38,9 +47,7 @@ function PointMesh({ object, isSelected }: { object: Point, isSelected: boolean 
     }
   };
   
-  // Selection is shown by size, not color.
-  // Pending points for tools have special colors.
-  const materialColor = isPendingLinePoint ? 'cyan' : isPendingShapePoint ? 'lime' : object.color;
+  const materialColor = isCalculationInput ? '#ffeb3b' : isPendingLinePoint ? 'cyan' : isPendingShapePoint ? 'lime' : object.color;
 
   return (
     <mesh
@@ -48,39 +55,55 @@ function PointMesh({ object, isSelected }: { object: Point, isSelected: boolean 
       position={object.position}
       onClick={handleClick}
     >
-      <sphereGeometry args={[isSelected ? 0.0675 : 0.045, 32, 32]} />
+      <sphereGeometry args={[isSelected || isCalculationInput ? 0.0675 : 0.045, 32, 32]} />
       <meshStandardMaterial color={materialColor} roughness={1} metalness={0} />
     </mesh>
   );
 }
 
-function LineMesh({ object, points, isSelected }: { object: Line, points: [Point, Point], isSelected: boolean }) {
-  const setSelectedObjectId = useGeometryStore(state => state.setSelectedObjectId);
+function LineMesh({ object, points, isSelected, isCalculationInput }: { object: Line, points: [Point, Point], isSelected: boolean, isCalculationInput: boolean }) {
+  const { isCalculatorOpen, calculationMode, addCalculationInput, setSelectedObjectId } = useGeometryStore(useShallow(state => ({
+    isCalculatorOpen: state.isCalculatorOpen,
+    calculationMode: state.calculationMode,
+    addCalculationInput: state.addCalculationInput,
+    setSelectedObjectId: state.setSelectedObjectId,
+  })));
+
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    if (isCalculatorOpen) {
+      if (calculationMode === 'angle-line-line') {
+        addCalculationInput(object.id);
+      }
+    } else {
+      setSelectedObjectId(object.id);
+    }
+  };
 
   return (
     <DreiLine
       points={[points[0].position, points[1].position]}
-      color={object.color}
-      lineWidth={isSelected ? 5 : 3}
-      onClick={(e) => {
-        e.stopPropagation();
-        setSelectedObjectId(object.id);
-      }}
+      color={isCalculationInput ? '#ffeb3b' : object.color}
+      lineWidth={isSelected || isCalculationInput ? 5 : 3}
+      onClick={handleClick}
     />
   );
 }
 
-function PlaneMesh({ object, points, isSelected }: { object: Plane, points: [Point, Point, Point], isSelected: boolean }) {
-  const setSelectedObjectId = useGeometryStore(state => state.setSelectedObjectId);
+function PlaneMesh({ object, points, isSelected, isCalculationInput }: { object: Plane, points: [Point, Point, Point], isSelected: boolean, isCalculationInput: boolean }) {
+  const { isCalculatorOpen, calculationMode, addCalculationInput, setSelectedObjectId } = useGeometryStore(useShallow(state => ({
+    isCalculatorOpen: state.isCalculatorOpen,
+    calculationMode: state.calculationMode,
+    addCalculationInput: state.addCalculationInput,
+    setSelectedObjectId: state.setSelectedObjectId,
+  })));
   
   const planeData = useMemo(() => {
     const p1 = new THREE.Vector3(...points[0].position);
     const p2 = new THREE.Vector3(...points[1].position);
     const p3 = new THREE.Vector3(...points[2].position);
-
     const plane = new THREE.Plane().setFromCoplanarPoints(p1, p2, p3);
     const center = new THREE.Vector3().add(p1).add(p2).add(p3).divideScalar(3);
-    
     return { plane, center };
   }, [points]);
 
@@ -92,18 +115,29 @@ function PlaneMesh({ object, points, isSelected }: { object: Plane, points: [Poi
     }
   }, [planeData]);
 
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    if (isCalculatorOpen) {
+      if (calculationMode === 'area-plane') {
+        addCalculationInput(object.id);
+      }
+    } else {
+      setSelectedObjectId(object.id);
+    }
+  };
+
   return (
       <mesh 
         ref={meshRef} 
         position={planeData.center}
-        onClick={(e) => { e.stopPropagation(); setSelectedObjectId(object.id); }}
+        onClick={handleClick}
       >
           <planeGeometry args={[50, 50]} />
           <meshStandardMaterial 
-            color={object.color} 
+            color={isCalculationInput ? '#ffeb3b' : object.color} 
             side={THREE.DoubleSide} 
             transparent 
-            opacity={isSelected ? 0.75 : 0.6} 
+            opacity={isSelected || isCalculationInput ? 0.75 : 0.6} 
             roughness={1}
             metalness={0}
           />
@@ -111,63 +145,114 @@ function PlaneMesh({ object, points, isSelected }: { object: Plane, points: [Poi
   )
 }
 
-function SphereMesh({ object, isSelected }: { object: Sphere, isSelected: boolean }) {
-  const setSelectedObjectId = useGeometryStore(state => state.setSelectedObjectId);
+function SphereMesh({ object, isSelected, isCalculationInput }: { object: Sphere, isSelected: boolean, isCalculationInput: boolean }) {
+    const { isCalculatorOpen, calculationMode, addCalculationInput, setSelectedObjectId } = useGeometryStore(useShallow(state => ({
+    isCalculatorOpen: state.isCalculatorOpen,
+    calculationMode: state.calculationMode,
+    addCalculationInput: state.addCalculationInput,
+    setSelectedObjectId: state.setSelectedObjectId,
+  })));
+
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    if (isCalculatorOpen) {
+      if (calculationMode === 'volume-solid') {
+        addCalculationInput(object.id);
+      }
+    } else {
+      setSelectedObjectId(object.id);
+    }
+  };
+
   return (
     <mesh
       position={object.position}
-      onClick={(e) => { e.stopPropagation(); setSelectedObjectId(object.id); }}
+      onClick={handleClick}
     >
       <sphereGeometry args={[object.radius, 32, 32]} />
       <meshStandardMaterial 
-        color={object.color} 
+        color={isCalculationInput ? '#ffeb3b' : object.color} 
         roughness={1} 
         metalness={0} 
         transparent 
-        opacity={isSelected ? 1.0 : 0.8}
+        opacity={isSelected || isCalculationInput ? 1.0 : 0.8}
       />
     </mesh>
   );
 }
 
-function CylinderMesh({ object, isSelected }: { object: Cylinder, isSelected: boolean }) {
-  const setSelectedObjectId = useGeometryStore(state => state.setSelectedObjectId);
+function CylinderMesh({ object, isSelected, isCalculationInput }: { object: Cylinder, isSelected: boolean, isCalculationInput: boolean }) {
+    const { isCalculatorOpen, calculationMode, addCalculationInput, setSelectedObjectId } = useGeometryStore(useShallow(state => ({
+    isCalculatorOpen: state.isCalculatorOpen,
+    calculationMode: state.calculationMode,
+    addCalculationInput: state.addCalculationInput,
+    setSelectedObjectId: state.setSelectedObjectId,
+  })));
   const position: [number, number, number] = [
     object.position[0],
     object.position[1] + object.height / 2,
     object.position[2]
   ];
+
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    if (isCalculatorOpen) {
+      if (calculationMode === 'volume-solid') {
+        addCalculationInput(object.id);
+      }
+    } else {
+      setSelectedObjectId(object.id);
+    }
+  };
+
   return (
     <mesh
       position={position}
-      onClick={(e) => { e.stopPropagation(); setSelectedObjectId(object.id); }}
+      onClick={handleClick}
     >
       <cylinderGeometry args={[object.radius, object.radius, object.height, 32]} />
       <meshStandardMaterial 
-        color={object.color}
+        color={isCalculationInput ? '#ffeb3b' : object.color}
         roughness={1}
         metalness={0}
         transparent
-        opacity={isSelected ? 1.0 : 0.8}
+        opacity={isSelected || isCalculationInput ? 1.0 : 0.8}
       />
     </mesh>
   );
 }
 
-function BoxMesh({ object, isSelected }: { object: Box, isSelected: boolean }) {
-  const setSelectedObjectId = useGeometryStore(state => state.setSelectedObjectId);
+function BoxMesh({ object, isSelected, isCalculationInput }: { object: Box, isSelected: boolean, isCalculationInput: boolean }) {
+    const { isCalculatorOpen, calculationMode, addCalculationInput, setSelectedObjectId } = useGeometryStore(useShallow(state => ({
+    isCalculatorOpen: state.isCalculatorOpen,
+    calculationMode: state.calculationMode,
+    addCalculationInput: state.addCalculationInput,
+    setSelectedObjectId: state.setSelectedObjectId,
+  })));
+
+  const handleClick = (e: any) => {
+    e.stopPropagation();
+    if (isCalculatorOpen) {
+      if (calculationMode === 'volume-solid') {
+        addCalculationInput(object.id);
+      }
+    } else {
+      setSelectedObjectId(object.id);
+    }
+  };
+
   return (
     <mesh
       position={object.position}
-      onClick={(e) => { e.stopPropagation(); setSelectedObjectId(object.id); }}
+      onClick={handleClick}
     >
       <boxGeometry args={object.size} />
       <meshStandardMaterial 
-        color={object.color}
+        color={isCalculationInput ? '#ffeb3b' : object.color}
         roughness={1}
         metalness={0}
         transparent
-        opacity={isSelected ? 1.0 : 0.8}
+        opacity={isSelected || isCalculationInput ? 1.0 : 0.8}
       />
     </mesh>
   );
@@ -175,17 +260,35 @@ function BoxMesh({ object, isSelected }: { object: Box, isSelected: boolean }) {
 
 
 function Scene() {
-  const objects = useGeometryStore(state => state.present);
-  const selectedObjectId = useGeometryStore(state => state.selectedObjectId);
-  const activeTool = useGeometryStore(state => state.activeTool);
-  const addObject = useGeometryStore(state => state.addObject);
-  const tempLinePoints = useGeometryStore(state => state.tempLinePoints);
-  const clearTempLinePoints = useGeometryStore(state => state.clearTempLinePoints);
-  const tempShapePoints = useGeometryStore(state => state.tempShapePoints);
-  const clearTempShapePoints = useGeometryStore(state => state.clearTempShapePoints);
-  const setSelectedObjectId = useGeometryStore(state => state.setSelectedObjectId);
-  const constructionPlane = useGeometryStore(state => state.constructionPlane);
-  const showLabels = useGeometryStore(state => state.showLabels);
+  const {
+    objects,
+    selectedObjectId,
+    activeTool,
+    addObject,
+    tempLinePoints,
+    clearTempLinePoints,
+    tempShapePoints,
+    clearTempShapePoints,
+    setSelectedObjectId,
+    constructionPlane,
+    showLabels,
+    calculationInputs,
+    isCalculatorOpen
+  } = useGeometryStore(useShallow(state => ({
+    objects: state.present,
+    selectedObjectId: state.selectedObjectId,
+    activeTool: state.activeTool,
+    addObject: state.addObject,
+    tempLinePoints: state.tempLinePoints,
+    clearTempLinePoints: state.clearTempLinePoints,
+    tempShapePoints: state.tempShapePoints,
+    clearTempShapePoints: state.clearTempShapePoints,
+    setSelectedObjectId: state.setSelectedObjectId,
+    constructionPlane: state.constructionPlane,
+    showLabels: state.showLabels,
+    calculationInputs: state.calculationInputs,
+    isCalculatorOpen: state.isCalculatorOpen,
+  })));
 
   const { camera, raycaster, pointer } = useThree();
 
@@ -222,6 +325,10 @@ function Scene() {
 
 
   const handleCanvasClick = (event: THREE.Event) => {
+    if (isCalculatorOpen) {
+        // Clicks on the background should not do anything in calculator mode
+        return;
+    }
     const clickPlane = new THREE.Plane(planeConfig.normal, 0);
     raycaster.setFromCamera(pointer, camera);
     const intersectPoint = new THREE.Vector3();
@@ -270,7 +377,7 @@ function Scene() {
       
       {points.map(obj => (
           <group key={obj.id}>
-            <PointMesh object={obj} isSelected={obj.id === selectedObjectId} />
+            <PointMesh object={obj} isSelected={obj.id === selectedObjectId} isCalculationInput={calculationInputs.includes(obj.id)} />
             {showLabels && (
               <Text
                 position={[obj.position[0], obj.position[1] + 0.25, obj.position[2]]}
@@ -293,7 +400,7 @@ function Scene() {
         if (!startPoint || !endPoint) return null;
         return (
           <group key={obj.id}>
-            <LineMesh object={obj} points={[startPoint, endPoint]} isSelected={obj.id === selectedObjectId} />
+            <LineMesh object={obj} points={[startPoint, endPoint]} isSelected={obj.id === selectedObjectId} isCalculationInput={calculationInputs.includes(obj.id)} />
           </group>
         );
       })}
@@ -305,24 +412,24 @@ function Scene() {
         if (!p1 || !p2 || !p3) return null;
         return (
             <group key={obj.id}>
-                <PlaneMesh object={obj} points={[p1, p2, p3]} isSelected={obj.id === selectedObjectId} />
+                <PlaneMesh object={obj} points={[p1, p2, p3]} isSelected={obj.id === selectedObjectId} isCalculationInput={calculationInputs.includes(obj.id)} />
             </group>
         )
       })}
       
       {spheres.map(obj => (
           <group key={obj.id}>
-            <SphereMesh object={obj} isSelected={obj.id === selectedObjectId} />
+            <SphereMesh object={obj} isSelected={obj.id === selectedObjectId} isCalculationInput={calculationInputs.includes(obj.id)} />
           </group>
       ))}
       {cylinders.map(obj => (
           <group key={obj.id}>
-            <CylinderMesh object={obj} isSelected={obj.id === selectedObjectId} />
+            <CylinderMesh object={obj} isSelected={obj.id === selectedObjectId} isCalculationInput={calculationInputs.includes(obj.id)} />
           </group>
       ))}
       {boxes.map(obj => (
           <group key={obj.id}>
-            <BoxMesh object={obj} isSelected={obj.id === selectedObjectId} />
+            <BoxMesh object={obj} isSelected={obj.id === selectedObjectId} isCalculationInput={calculationInputs.includes(obj.id)} />
           </group>
       ))}
 

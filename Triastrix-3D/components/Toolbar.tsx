@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { MousePointer, Circle, Spline, Layers, Undo, Redo, Orbit, Database, Box as BoxIcon } from 'lucide-react';
+import { MousePointer, Circle, Spline, Layers, Undo, Redo, Orbit, Database, Box as BoxIcon, Ruler } from 'lucide-react';
 import type { Tool, ConstructionPlane } from '../types';
 import { useGeometryStore } from '../store/geometryStore';
 
@@ -48,6 +48,8 @@ const ActionButton: React.FC<{ icon: React.ComponentType<{ size?: number }>; lab
 export default function Toolbar({ activeTool, setActiveTool, undo, redo, canUndo, canRedo }: ToolbarProps) {
   const constructionPlane = useGeometryStore(state => state.constructionPlane);
   const setConstructionPlane = useGeometryStore(state => state.setConstructionPlane);
+  const toggleCalculator = useGeometryStore(state => state.toggleCalculator);
+  const isCalculatorOpen = useGeometryStore(state => state.isCalculatorOpen);
   
   return (
     <aside className="w-20 bg-gray-800 p-2 flex flex-col items-center space-y-4 shadow-lg z-10">
@@ -76,6 +78,7 @@ export default function Toolbar({ activeTool, setActiveTool, undo, redo, canUndo
 
       <div className="flex-grow"></div>
       <div className="flex flex-col space-y-2">
+         <ToolButton icon={Ruler} label="Calculator" isActive={isCalculatorOpen} onClick={toggleCalculator} />
          <ActionButton icon={Undo} label="Undo" onClick={undo} disabled={!canUndo} />
          <ActionButton icon={Redo} label="Redo" onClick={redo} disabled={!canRedo} />
       </div>
