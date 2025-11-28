@@ -58,7 +58,7 @@ jobs:
         run: |
           rm -rf dist
           mkdir -p dist
-          cp -r ${{ github.workspace }}/dist/* dist/
+          cp -r dist/* dist/
 
       # ---------------------------------------------
       # Commit and push changes
