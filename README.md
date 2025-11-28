@@ -68,7 +68,7 @@ Triastrix allows you to create and manipulate points, lines, planes, vectors, so
 
 ### 1. Clone the repository
 ```sh
-git clone https://github.com/<your-username>/triastrix.git
+git clone https://github.com/bteamapp/triastrix.git
 cd triastrix
 ````
 
