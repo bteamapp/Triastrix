@@ -1,0 +1,22 @@
+<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <!-- Top rhombus (lighter blue) -->
+  <path d="M 50,10 L 95,35 L 50,60 L 5,35 Z" fill="#60a5fa"/>
+  <!-- Left rhombus (medium blue) -->
+  <path d="M 5,35 L 50,60 L 50,90 L 5,65 Z" fill="#3b82f6"/>
+  <!-- Right rhombus (darker blue) -->
+  <path d="M 95,35 L 50,60 L 50,90 L 95,65 Z" fill="#2563eb"/>
+
+  <!-- "Tx" Text with angled transform -->
+  <text
+    x="50" y="36"
+    font-family="Arial, sans-serif"
+    font-size="26"
+    font-weight="bold"
+    fill="white"
+    text-anchor="middle"
+    dominant-baseline="middle"
+    fill-opacity="0.95"
+    transform="skewX(-20) rotate(-10 50 36)">
+    Tx
+  </text>
+</svg>
