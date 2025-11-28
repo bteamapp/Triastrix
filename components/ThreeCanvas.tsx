@@ -1,5 +1,8 @@
 
 import React, { useRef, useMemo, useEffect } from 'react';
+// FIX: Add a side-effect import to ensure JSX intrinsic elements from @react-three/fiber are registered.
+// This resolves errors like "Property 'mesh' does not exist on type 'JSX.IntrinsicElements'".
+import '@react-three/fiber';
 import { Canvas, useThree } from '@react-three/fiber';
 import { OrbitControls, Grid, Line as DreiLine, Plane as DreiPlane, Text } from '@react-three/drei';
 import * as THREE from 'three';

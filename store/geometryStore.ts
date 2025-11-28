@@ -32,6 +32,7 @@ interface GeometryState {
   addObject: (obj: AddObjectPayload) => void;
   updateObject: (id: string, updates: Partial<GeometricObject>) => void;
   removeObject: (id: string) => void;
+  loadProject: (objects: GeometricObject[]) => void;
   
   addTempLinePoint: (id: string) => void;
   clearTempLinePoints: () => void;
@@ -87,8 +88,11 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
 
   updateObject: (id, updates) => {
     set(state => {
-      const newPresent = state.present.map(obj => 
-        obj.id === id ? { ...obj, ...updates } : obj
+      // FIX: Cast the updated object to GeometricObject to resolve discriminated union errors.
+      // The spread operator was creating objects with mixed properties that broke the union type,
+      // causing type errors in other functions like `removeObject`.
+      const newPresent = state.present.map(obj =>
+        obj.id === id ? ({ ...obj, ...updates } as GeometricObject) : obj
       );
       if (JSON.stringify(newPresent) === JSON.stringify(state.present)) {
         return state; // No actual change
@@ -123,6 +127,17 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
         future: [],
         selectedObjectId: state.selectedObjectId === id ? null : state.selectedObjectId,
       };
+    });
+  },
+
+  loadProject: (objects) => {
+    set({
+      present: objects,
+      past: [],
+      future: [],
+      selectedObjectId: null,
+      tempLinePoints: [],
+      tempShapePoints: [],
     });
   },
 
