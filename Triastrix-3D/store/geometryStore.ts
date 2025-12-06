@@ -38,6 +38,7 @@ interface GeometryState {
   removeObject: (id: string) => void;
   loadProject: (objects: GeometricObject[]) => void;
   
+  addPointOnLine: (lineId: string, ratio: number) => void;
   addTempLinePoint: (id: string) => void;
   clearTempLinePoints: () => void;
   addTempShapePoint: (id: string) => void;
@@ -162,6 +163,34 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
       tempLinePoints: [],
       tempShapePoints: [],
     });
+  },
+
+  addPointOnLine: (lineId, ratio) => {
+    const { present, addObject } = get();
+    
+    const t = Math.max(0, Math.min(1, ratio));
+
+    const line = present.find(o => o.id === lineId && o.type === 'line') as Line | undefined;
+    if (!line) {
+        console.error("Line not found for subdivision");
+        return;
+    }
+
+    const startPoint = present.find(o => o.id === line.startPointId && o.type === 'point') as Point | undefined;
+    const endPoint = present.find(o => o.id === line.endPointId && o.type === 'point') as Point | undefined;
+
+    if (!startPoint || !endPoint) {
+        console.error("Endpoints not found for line subdivision");
+        return;
+    }
+    
+    const p1 = new THREE.Vector3(...startPoint.position);
+    const p2 = new THREE.Vector3(...endPoint.position);
+    
+    const newPositionVec = new THREE.Vector3().lerpVectors(p1, p2, t);
+    const newPosition: [number, number, number] = [newPositionVec.x, newPositionVec.y, newPositionVec.z];
+    
+    addObject({ type: 'point', position: newPosition });
   },
 
   undo: () => {

@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useGeometryStore } from '../store/geometryStore';
-import type { GeometricObject, Point, Sphere, Cylinder, Box, Plane } from '../types';
+import type { GeometricObject, Point, Sphere, Cylinder, Box, Plane, Line } from '../types';
 
 const NumberInput: React.FC<{ label: string; value: number; onChange: (val: number) => void }> = ({ label, value, onChange }) => (
   <div className="flex items-center justify-between">
@@ -41,6 +41,66 @@ const PositionProperties: React.FC<{ object: { id: string; position: [number, nu
 const PointProperties: React.FC<{ object: Point }> = ({ object }) => {
   return <PositionProperties object={object} />;
 };
+
+const LineProperties: React.FC<{ object: Line }> = ({ object }) => {
+  const allObjects = useGeometryStore(state => state.present);
+  const addPointOnLine = useGeometryStore(state => state.addPointOnLine);
+  const [customRatio, setCustomRatio] = useState(0.5);
+
+  const startPoint = allObjects.find(o => o.id === object.startPointId);
+  const startPointName = startPoint?.name || 'Unknown';
+  const endPointName = allObjects.find(o => o.id === object.endPointId)?.name || 'Unknown';
+
+  const handleAddPoint = (ratio: number) => {
+    if (isNaN(ratio) || ratio < 0 || ratio > 1) {
+        alert("Ratio must be between 0 and 1.");
+        return;
+    }
+    addPointOnLine(object.id, ratio);
+  };
+
+  const handleRatioInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const val = e.target.valueAsNumber;
+      setCustomRatio(isNaN(val) ? 0 : val);
+  };
+
+  return (
+    <div className="space-y-4">
+      <div>
+        <h4 className="font-bold text-sm">Endpoints</h4>
+        <ul className="list-disc list-inside text-sm text-gray-300 mt-1 pl-2">
+          <li>{startPointName}</li>
+          <li>{endPointName}</li>
+        </ul>
+      </div>
+      <div>
+        <h4 className="font-bold text-sm">Subdivide Line</h4>
+        <div className="mt-2 space-y-2">
+          <p className="text-xs text-gray-400">Add a point at a ratio from {startPointName}.</p>
+          <div className="grid grid-cols-3 gap-2">
+            <button onClick={() => handleAddPoint(0.5)} className="px-2 py-1 text-xs bg-gray-600 rounded hover:bg-blue-600 transition-colors">Midpoint</button>
+            <button onClick={() => handleAddPoint(1/3)} className="px-2 py-1 text-xs bg-gray-600 rounded hover:bg-blue-600 transition-colors">1/3</button>
+            <button onClick={() => handleAddPoint(2/3)} className="px-2 py-1 text-xs bg-gray-600 rounded hover:bg-blue-600 transition-colors">2/3</button>
+          </div>
+          <div className="flex items-center space-x-2 pt-2">
+            <input 
+              type="number" 
+              step="0.01" 
+              min="0" 
+              max="1" 
+              value={customRatio}
+              onChange={handleRatioInputChange}
+              className="w-full bg-gray-900 text-sm rounded p-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="e.g. 0.25"
+            />
+            <button onClick={() => handleAddPoint(customRatio)} className="px-3 py-1 text-sm bg-blue-700 rounded hover:bg-blue-600 transition-colors flex-shrink-0">Add</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 
 const PlaneProperties: React.FC<{ object: Plane }> = ({ object }) => {
     const allObjects = useGeometryStore(state => state.present);
@@ -157,6 +217,7 @@ export default function PropertiesInspector() {
         />
       </div>
       {selectedObject.type === 'point' && <PointProperties object={selectedObject} />}
+      {selectedObject.type === 'line' && <LineProperties object={selectedObject as Line} />}
       {selectedObject.type === 'plane' && <PlaneProperties object={selectedObject as Plane} />}
       {selectedObject.type === 'sphere' && <SphereProperties object={selectedObject as Sphere} />}
       {selectedObject.type === 'cylinder' && <CylinderProperties object={selectedObject as Cylinder} />}
