@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { FilePlus, FolderOpen } from 'lucide-react';
 
@@ -10,10 +9,10 @@ interface WelcomeModalProps {
 export default function WelcomeModal({ onNewProject, onOpenProject }: WelcomeModalProps) {
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-80 flex items-center justify-center z-50 backdrop-blur-sm">
-      <div className="bg-gray-800 rounded-lg shadow-2xl p-8 max-w-md w-full border border-gray-700">
+      <div className="bg-white dark:bg-gray-800 rounded-lg shadow-2xl p-8 max-w-md w-full border border-gray-200 dark:border-gray-700 transition-colors duration-200">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-blue-400">Welcome to Triastrix</h1>
-          <p className="text-gray-400 mt-2">Your open-source 3D geometry tool.</p>
+          <h1 className="text-3xl font-bold text-blue-600 dark:text-blue-400">Welcome to Triastrix</h1>
+          <p className="text-gray-600 dark:text-gray-400 mt-2">Your open-source 3D geometry tool.</p>
         </div>
         <div className="mt-8 flex flex-col space-y-4">
           <button
@@ -25,7 +24,7 @@ export default function WelcomeModal({ onNewProject, onOpenProject }: WelcomeMod
           </button>
           <button
             onClick={onOpenProject}
-            className="flex items-center justify-center w-full px-6 py-3 bg-gray-700 text-gray-200 font-semibold rounded-lg hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
+            className="flex items-center justify-center w-full px-6 py-3 bg-gray-200 text-gray-800 hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 font-semibold rounded-lg dark:hover:bg-gray-600 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-opacity-50"
           >
             <FolderOpen className="mr-2" size={20} />
             Open Project (.trix3d)

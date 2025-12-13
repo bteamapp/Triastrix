@@ -6,21 +6,37 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Triastrix 3D Geometry</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {}
+        }
+      }
+    </script>
     <style>
         /* For webkit-based browsers (Chrome, Safari) */
         ::-webkit-scrollbar {
             width: 8px;
         }
         ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        .dark ::-webkit-scrollbar-track {
             background: #2d3748; /* dark-gray-800 */
         }
         ::-webkit-scrollbar-thumb {
-            background-color: #4a5568; /* dark-gray-600 */
+            background-color: #cbd5e0; /* gray-300 */
             border-radius: 4px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #4a5568; /* dark-gray-600 */
             border: 2px solid #2d3748; /* dark-gray-800 */
         }
     </style>
-<link rel="stylesheet" href="index.css">
+<link rel="stylesheet" href="/index.css">
 
 <script type="importmap">
 {
@@ -40,9 +56,9 @@
   }
 }
 </script>
-  <script type="module" crossorigin src="assets/index-kM4Laqpj.js"></script>
+  <script type="module" crossorigin src="assets/index-Dhbc8SBf.js"></script>
 </head>
-<body class="bg-gray-900 text-white">
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-200">
     <div id="root"></div>
 </body>
 </html>

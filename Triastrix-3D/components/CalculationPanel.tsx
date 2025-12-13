@@ -15,7 +15,7 @@ const CalculationButton = ({ mode, label, icon: Icon }: { mode: CalculationMode,
             className={`flex flex-col items-center justify-center p-2 rounded-lg transition-colors duration-200 w-full ${
                 currentMode === mode
                     ? 'bg-blue-600 text-white'
-                    : 'bg-gray-700 text-gray-300 hover:bg-gray-600 hover:text-white'
+                    : 'bg-white text-gray-600 hover:bg-gray-200 hover:text-gray-900 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 dark:hover:text-white border border-gray-200 dark:border-transparent'
             }`}
         >
             <Icon size={20} />
@@ -56,10 +56,10 @@ export default function CalculationPanel() {
     }, [calculationInputs, present]);
 
     return (
-        <div className="absolute top-4 right-4 w-72 bg-gray-800 p-4 rounded-lg shadow-lg z-20 border border-gray-700">
-            <div className="flex items-center justify-between pb-2 border-b border-gray-600">
-                <h3 className="text-lg font-semibold text-gray-200">Calculator</h3>
-                <button onClick={toggleCalculator} className="p-1 rounded-full text-gray-400 hover:bg-gray-700 hover:text-white">
+        <div className="absolute top-4 right-4 w-72 bg-gray-100 dark:bg-gray-800 p-4 rounded-lg shadow-lg z-20 border border-gray-300 dark:border-gray-700 transition-colors duration-200">
+            <div className="flex items-center justify-between pb-2 border-b border-gray-300 dark:border-gray-600">
+                <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200">Calculator</h3>
+                <button onClick={toggleCalculator} className="p-1 rounded-full text-gray-500 hover:bg-gray-200 hover:text-gray-900 dark:text-gray-400 dark:hover:bg-gray-700 dark:hover:text-white transition-colors">
                     <X size={20} />
                 </button>
             </div>
@@ -71,25 +71,25 @@ export default function CalculationPanel() {
                 <CalculationButton mode="volume-solid" label="Volume" icon={BoxIcon} />
             </div>
 
-            <div className="bg-gray-900 p-3 rounded-md min-h-[120px] text-sm">
-                <p className="text-gray-400 italic mb-2">{getInstructions(calculationMode)}</p>
+            <div className="bg-white border border-gray-200 dark:bg-gray-900 dark:border-transparent p-3 rounded-md min-h-[120px] text-sm">
+                <p className="text-gray-600 dark:text-gray-400 italic mb-2">{getInstructions(calculationMode)}</p>
                 {selectedObjectNames.length > 0 && (
                      <div className="mb-2">
-                        <span className="text-gray-300 font-medium">Selected: </span>
-                        <span className="text-gray-400">{selectedObjectNames.join(', ')}</span>
+                        <span className="text-gray-700 dark:text-gray-300 font-medium">Selected: </span>
+                        <span className="text-gray-600 dark:text-gray-400">{selectedObjectNames.join(', ')}</span>
                      </div>
                 )}
 
                 {calculationResult && (
-                    <div className="mt-2 pt-2 border-t border-gray-700">
-                        <p className="text-lg font-bold text-green-400 text-center whitespace-pre-wrap">{calculationResult}</p>
+                    <div className="mt-2 pt-2 border-t border-gray-200 dark:border-gray-700">
+                        <p className="text-lg font-bold text-green-600 dark:text-green-400 text-center whitespace-pre-wrap">{calculationResult}</p>
                     </div>
                 )}
             </div>
             
             <button
                 onClick={clearCalculation}
-                className="w-full mt-4 py-2 bg-gray-600 text-gray-200 font-semibold rounded-lg hover:bg-gray-500 transition-colors"
+                className="w-full mt-4 py-2 bg-gray-200 text-gray-700 hover:bg-gray-300 dark:bg-gray-600 dark:text-gray-200 font-semibold rounded-lg dark:hover:bg-gray-500 transition-colors"
             >
                 Clear Selection
             </button>

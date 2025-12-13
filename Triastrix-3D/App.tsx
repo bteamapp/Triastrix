@@ -1,5 +1,4 @@
-
-import React, { Suspense, useState, useCallback } from 'react';
+import React, { Suspense, useState, useCallback, useEffect } from 'react';
 import Toolbar from './components/Toolbar';
 import Sidebar from './components/Sidebar';
 import ThreeCanvas from './components/ThreeCanvas';
@@ -14,6 +13,16 @@ export default function App() {
   const setActiveTool = useGeometryStore(state => state.setActiveTool);
   const loadProject = useGeometryStore(state => state.loadProject);
   const isCalculatorOpen = useGeometryStore(state => state.isCalculatorOpen);
+  const theme = useGeometryStore(state => state.theme);
+
+  useEffect(() => {
+    const root = window.document.documentElement;
+    if (theme === 'dark') {
+      root.classList.add('dark');
+    } else {
+      root.classList.remove('dark');
+    }
+  }, [theme]);
 
   const handleOpenFile = useCallback(() => {
     const input = document.createElement('input');
@@ -56,10 +65,10 @@ export default function App() {
           onOpenProject={handleOpenFile}
         />
       )}
-      <div className="flex h-screen w-screen bg-gray-900 text-gray-200 font-sans">
+      <div className="flex h-screen w-screen bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-gray-200 font-sans transition-colors duration-200">
         <Toolbar activeTool={activeTool} setActiveTool={setActiveTool} />
         <main className="flex-1 relative">
-          <Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-gray-800"><p>Loading 3D Scene...</p></div>}>
+          <Suspense fallback={<div className="w-full h-full flex items-center justify-center bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200"><p>Loading 3D Scene...</p></div>}>
             <ThreeCanvas />
           </Suspense>
           {isCalculatorOpen && <CalculationPanel />}
