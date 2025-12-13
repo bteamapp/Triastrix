@@ -1,9 +1,7 @@
 import { create } from 'zustand';
 import * as THREE from 'three';
-// FIX: import all geometric object types for use in AddObjectPayload
 import type { Tool, GeometricObject, Point, Line, Plane, Sphere, Cylinder, Box, ConstructionPlane, CalculationMode } from '../types';
 
-// FIX: Create a distributive Omit type for addObject payload to fix discriminated union issues.
 type AddObjectPayload =
     | Omit<Point, 'id' | 'name' | 'color'>
     | Omit<Line, 'id' | 'name' | 'color'>
@@ -26,13 +24,13 @@ interface GeometryState {
   calculationMode: CalculationMode;
   calculationInputs: string[];
   calculationResult: string | null;
+  theme: 'light' | 'dark';
   
   setActiveTool: (tool: Tool) => void;
   setConstructionPlane: (plane: ConstructionPlane) => void;
   setSelectedObjectId: (id: string | null) => void;
   toggleLabels: () => void;
   
-  // FIX: Use the new AddObjectPayload type
   addObject: (obj: AddObjectPayload) => void;
   updateObject: (id: string, updates: Partial<GeometricObject>) => void;
   removeObject: (id: string) => void;
@@ -51,7 +49,17 @@ interface GeometryState {
   setCalculationMode: (mode: CalculationMode) => void;
   addCalculationInput: (id: string) => void;
   clearCalculation: () => void;
+
+  toggleTheme: () => void;
+  setTheme: (theme: 'light' | 'dark') => void;
 }
+
+const getSystemTheme = () => {
+    if (typeof window !== 'undefined' && window.matchMedia) {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+    }
+    return 'dark'; // Default fallback
+};
 
 const useGeometryStore = create<GeometryState>((set, get) => ({
   past: [],
@@ -67,13 +75,13 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
   calculationMode: null,
   calculationInputs: [],
   calculationResult: null,
+  theme: getSystemTheme(),
 
   setActiveTool: (tool) => set({ 
     activeTool: tool, 
     selectedObjectId: null, 
     tempLinePoints: [], 
     tempShapePoints: [],
-    // Close calculator if a tool is selected
     isCalculatorOpen: false,
     calculationMode: null,
     calculationInputs: [],
@@ -112,14 +120,11 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
 
   updateObject: (id, updates) => {
     set(state => {
-      // FIX: Cast the updated object to GeometricObject to resolve discriminated union errors.
-      // The spread operator was creating objects with mixed properties that broke the union type,
-      // causing type errors in other functions like `removeObject`.
       const newPresent = state.present.map(obj =>
         obj.id === id ? ({ ...obj, ...updates } as GeometricObject) : obj
       );
       if (JSON.stringify(newPresent) === JSON.stringify(state.present)) {
-        return state; // No actual change
+        return state;
       }
       return {
         past: [...state.past, state.present],
@@ -132,8 +137,6 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
   removeObject: (id) => {
     set(state => {
        const newPresent = state.present.filter(obj => obj.id !== id);
-       // Also remove objects that depend on this one
-       // FIX: Use a switch statement for better type inference with discriminated unions.
        const finalPresent = newPresent.filter(obj => {
          switch (obj.type) {
            case 'line':
@@ -227,11 +230,9 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
     const isOpen = !state.isCalculatorOpen;
     return { 
       isCalculatorOpen: isOpen,
-      // Reset on close
       calculationMode: isOpen ? state.calculationMode : null,
       calculationInputs: isOpen ? state.calculationInputs : [],
       calculationResult: isOpen ? state.calculationResult : null,
-      // Deselect active tool when opening calculator
       activeTool: isOpen ? 'select' : state.activeTool,
       selectedObjectId: null,
     };
@@ -288,21 +289,16 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
           }
           break;
         case 'area-polygon':
-          // Need at least 2 points for perimeter distance, 3 for area
           if (objects.length >= 2 && objects.every(o => o.type === 'point')) {
               const points = objects.map(o => new THREE.Vector3(...(o as Point).position));
-              
-              // Perimeter
               let perimeter = 0;
               for(let i=0; i<points.length; i++) {
-                 // Connect last to first to close the loop
                  perimeter += points[i].distanceTo(points[(i+1) % points.length]);
               }
 
               result = `Perimeter: ${perimeter.toFixed(3)}`;
 
               if (points.length >= 3) {
-                  // Area (Vector area method: 0.5 * |sum(Pi x Pi+1)|)
                   const areaVector = new THREE.Vector3();
                   for(let i=0; i<points.length; i++) {
                       const p1 = points[i];
@@ -313,18 +309,14 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
                   result += `\nArea: ${area.toFixed(3)}`;
               }
 
-              // Volume (Tetrahedron if 4 points)
               if (points.length === 4) {
                    const a = points[0];
                    const b = points[1];
                    const c = points[2];
                    const d = points[3];
-                   
                    const v1 = new THREE.Vector3().subVectors(a, d);
                    const v2 = new THREE.Vector3().subVectors(b, d);
                    const v3 = new THREE.Vector3().subVectors(c, d);
-                   
-                   // Scalar triple product / 6
                    const volume = Math.abs(v1.dot(new THREE.Vector3().crossVectors(v2, v3))) / 6.0;
                    result += `\nVolume: ${volume.toFixed(3)}`;
               }
@@ -358,6 +350,9 @@ const useGeometryStore = create<GeometryState>((set, get) => ({
       set({ calculationResult: result });
     }
   },
+
+  toggleTheme: () => set(state => ({ theme: state.theme === 'dark' ? 'light' : 'dark' })),
+  setTheme: (theme) => set({ theme }),
 
 }));
 

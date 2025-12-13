@@ -5,12 +5,12 @@ import type { GeometricObject } from '../types';
 
 const ObjectIcon = ({ type }: { type: GeometricObject['type'] }) => {
   switch (type) {
-    case 'point': return <Circle className="w-4 h-4 text-blue-400" />;
-    case 'line': return <Spline className="w-4 h-4 text-green-400" />;
-    case 'plane': return <Layers className="w-4 h-4 text-purple-400" />;
-    case 'sphere': return <Orbit className="w-4 h-4 text-orange-400" />;
-    case 'cylinder': return <Database className="w-4 h-4 text-yellow-400" />;
-    case 'box': return <BoxIcon className="w-4 h-4 text-red-400" />;
+    case 'point': return <Circle className="w-4 h-4 text-blue-500 dark:text-blue-400" />;
+    case 'line': return <Spline className="w-4 h-4 text-green-500 dark:text-green-400" />;
+    case 'plane': return <Layers className="w-4 h-4 text-purple-500 dark:text-purple-400" />;
+    case 'sphere': return <Orbit className="w-4 h-4 text-orange-500 dark:text-orange-400" />;
+    case 'cylinder': return <Database className="w-4 h-4 text-yellow-500 dark:text-yellow-400" />;
+    case 'box': return <BoxIcon className="w-4 h-4 text-red-500 dark:text-red-400" />;
     default: return null;
   }
 };
@@ -32,16 +32,22 @@ export default function ObjectManager() {
           key={obj.id}
           onClick={() => setSelectedObjectId(obj.id)}
           className={`flex items-center justify-between p-2 rounded-md cursor-pointer transition-colors duration-150 ${
-            selectedObjectId === obj.id ? 'bg-blue-600' : 'hover:bg-gray-700'
+            selectedObjectId === obj.id 
+                ? 'bg-blue-600 text-white' 
+                : 'text-gray-700 hover:bg-gray-200 dark:text-gray-200 dark:hover:bg-gray-700'
           }`}
         >
           <div className="flex items-center space-x-2 truncate">
             <ObjectIcon type={obj.type} />
-            <span className="text-sm truncate">{obj.name}</span>
+            <span className="text-sm truncate font-medium">{obj.name}</span>
           </div>
           <button
             onClick={(e) => { e.stopPropagation(); removeObject(obj.id); }}
-            className="p-1 rounded-full text-gray-400 hover:bg-red-500 hover:text-white transition-colors duration-150 flex-shrink-0"
+            className={`p-1 rounded-full transition-colors duration-150 flex-shrink-0 ${
+               selectedObjectId === obj.id 
+               ? 'text-blue-200 hover:bg-blue-500 hover:text-white' 
+               : 'text-gray-400 hover:bg-red-500 hover:text-white'
+            }`}
             title="Delete Object"
           >
             <Trash2 size={16} />

@@ -358,7 +358,8 @@ function Scene() {
     showLabels,
     calculationInputs,
     calculationMode,
-    isCalculatorOpen
+    isCalculatorOpen,
+    theme
   } = useGeometryStore(useShallow(state => ({
     objects: state.present,
     selectedObjectId: state.selectedObjectId,
@@ -374,6 +375,7 @@ function Scene() {
     calculationInputs: state.calculationInputs,
     calculationMode: state.calculationMode,
     isCalculatorOpen: state.isCalculatorOpen,
+    theme: state.theme,
   })));
 
   const { camera, raycaster, pointer } = useThree();
@@ -441,18 +443,25 @@ function Scene() {
     }
   };
 
+  const gridColor = theme === 'dark' ? "#555" : "#ccc";
+  const axisColorX = theme === 'dark' ? "#ff6b6b" : "#d32f2f";
+  const axisColorY = theme === 'dark' ? "#69f0ae" : "#388e3c";
+  const axisColorZ = theme === 'dark' ? "#81a1c1" : "#1976d2";
+  const labelColor = theme === 'dark' ? "white" : "black";
+  const labelOutline = theme === 'dark' ? "black" : "white";
+
   return (
     <>
       <ambientLight intensity={0.5} />
       <directionalLight position={[10, 10, 10]} intensity={1.5} />
       <directionalLight position={[-5, -10, -2]} intensity={0.5} />
-      <Grid infiniteGrid args={[10, 100]} sectionColor="#555" fadeDistance={50} rotation={planeConfig.rotation} />
+      <Grid infiniteGrid args={[10, 100]} sectionColor={gridColor} fadeDistance={50} rotation={planeConfig.rotation} />
       
       {/* Axis Helpers and Labels */}
       <axesHelper args={[2]} />
-      <Text position={[2.2, 0, 0]} fontSize={0.25} color="#ff6b6b" anchorX="center" anchorY="middle">X</Text>
-      <Text position={[0, 2.2, 0]} fontSize={0.25} color="#69f0ae" anchorX="center" anchorY="middle">Y</Text>
-      <Text position={[0, 0, 2.2]} fontSize={0.25} color="#81a1c1" anchorX="center" anchorY="middle">Z</Text>
+      <Text position={[2.2, 0, 0]} fontSize={0.25} color={axisColorX} anchorX="center" anchorY="middle">X</Text>
+      <Text position={[0, 2.2, 0]} fontSize={0.25} color={axisColorY} anchorX="center" anchorY="middle">Y</Text>
+      <Text position={[0, 0, 2.2]} fontSize={0.25} color={axisColorZ} anchorX="center" anchorY="middle">Z</Text>
       
       <OrbitControls makeDefault />
 
@@ -468,11 +477,11 @@ function Scene() {
               <Text
                 position={[obj.position[0], obj.position[1] + 0.25, obj.position[2]]}
                 fontSize={0.2}
-                color="white"
+                color={labelColor}
                 anchorX="center"
                 anchorY="middle"
                 outlineWidth={0.005}
-                outlineColor="black"
+                outlineColor={labelOutline}
               >
                 {obj.name}
               </Text>
@@ -546,7 +555,7 @@ export default function ThreeCanvas() {
   return (
     <Canvas
       camera={{ position: [5, 5, 5], fov: 50 }}
-      className="w-full h-full bg-gray-900"
+      className="w-full h-full bg-gray-50 dark:bg-gray-900 transition-colors duration-200"
       shadows
     >
       <Scene />
