@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="data:image/svg+xml,<svg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'><path d='M 50,10 L 95,35 L 50,60 L 5,35 Z' fill='%2360a5fa'/><path d='M 5,35 L 50,60 L 50,90 L 5,65 Z' fill='%233b82f6'/><path d='M 95,35 L 50,60 L 50,90 L 95,65 Z' fill='%232563eb'/><text x='50' y='36' font-family='Arial, sans-serif' font-size='26' font-weight='bold' fill='white' text-anchor='middle' dominant-baseline='middle' fill-opacity='0.95' transform='skewX(-20) rotate(-10 50 36)'>Tx</text></svg>" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Triastrix 3D Geometry</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {}
+        }
+      }
+    </script>
+    <style>
+        /* For webkit-based browsers (Chrome, Safari) */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: transparent; 
+        }
+        .dark ::-webkit-scrollbar-track {
+            background: #2d3748; /* dark-gray-800 */
+        }
+        ::-webkit-scrollbar-thumb {
+            background-color: #cbd5e0; /* gray-300 */
+            border-radius: 4px;
+            border: 2px solid transparent;
+            background-clip: content-box;
+        }
+        .dark ::-webkit-scrollbar-thumb {
+            background-color: #4a5568; /* dark-gray-600 */
+            border: 2px solid #2d3748; /* dark-gray-800 */
+        }
+    </style>
+
+<link rel="stylesheet" href="/index.css">
+<script type="importmap">
+{
+  "imports": {
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "url": "https://aistudiocdn.com/url@^0.11.4",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "@react-three/drei": "https://aistudiocdn.com/@react-three/drei@^10.7.7",
+    "three": "https://aistudiocdn.com/three@^0.181.2",
+    "lucide-react": "https://aistudiocdn.com/lucide-react@^0.555.0",
+    "@react-three/fiber": "https://aistudiocdn.com/@react-three/fiber@^9.4.0",
+    "zustand": "https://aistudiocdn.com/zustand@^5.0.8",
+    "zustand/": "https://aistudiocdn.com/zustand@^5.0.8/"
+  }
+}
+</script>
+  <script type="module" crossorigin src="/assets/index-ClvtwuFs.js"></script>
+</head>
+<body class="bg-gray-50 text-gray-900 dark:bg-gray-900 dark:text-white transition-colors duration-200">
+    <div id="root"></div>
+</body>
+</html>
