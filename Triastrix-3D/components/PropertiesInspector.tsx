@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useGeometryStore } from '../store/geometryStore';
+import { Image as ImageIcon, Trash2 } from 'lucide-react';
 import type { GeometricObject, Point, Sphere, Cylinder, Box, Plane, Line } from '../types';
 
 const NumberInput: React.FC<{ label: string; value: number; onChange: (val: number) => void }> = ({ label, value, onChange }) => (
@@ -14,6 +15,50 @@ const NumberInput: React.FC<{ label: string; value: number; onChange: (val: numb
     />
   </div>
 );
+
+const TextureSection: React.FC<{ object: Sphere | Cylinder | Box }> = ({ object }) => {
+  const updateObject = useGeometryStore(state => state.updateObject);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        if (typeof event.target?.result === 'string') {
+          updateObject(object.id, { textureUrl: event.target.result });
+        }
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  return (
+    <div className="pt-2 border-t border-gray-100 dark:border-gray-600">
+      <h4 className="font-bold text-sm text-gray-700 dark:text-gray-200 mb-2">Mockup / Texture</h4>
+      <div className="flex items-center justify-between">
+        <label className="cursor-pointer inline-flex items-center px-3 py-1.5 bg-gray-100 hover:bg-gray-200 dark:bg-gray-600 dark:hover:bg-gray-500 text-gray-700 dark:text-gray-200 text-xs rounded transition-colors duration-150">
+            <ImageIcon size={14} className="mr-2" />
+            <input type="file" accept="image/*" className="hidden" onChange={handleFileChange} />
+            <span>Upload Image</span>
+        </label>
+        {object.textureUrl && (
+            <button 
+                onClick={() => updateObject(object.id, { textureUrl: undefined })}
+                className="p-1.5 text-red-500 hover:bg-red-50 dark:hover:bg-gray-600 rounded transition-colors"
+                title="Remove Texture"
+            >
+                <Trash2 size={14} />
+            </button>
+        )}
+      </div>
+      {object.textureUrl && (
+          <div className="mt-2 w-full h-16 bg-gray-100 dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 overflow-hidden relative">
+              <img src={object.textureUrl} alt="Texture Preview" className="w-full h-full object-cover" />
+          </div>
+      )}
+    </div>
+  );
+};
 
 const PositionProperties: React.FC<{ object: { id: string; position: [number, number, number] } }> = ({ object }) => {
   const updateObject = useGeometryStore(state => state.updateObject);
@@ -127,6 +172,7 @@ const SphereProperties: React.FC<{ object: Sphere }> = ({ object }) => {
           <NumberInput label="R" value={object.radius} onChange={(v) => updateObject(object.id, { radius: v })} />
         </div>
       </div>
+      <TextureSection object={object} />
     </div>
   );
 };
@@ -143,6 +189,7 @@ const CylinderProperties: React.FC<{ object: Cylinder }> = ({ object }) => {
           <NumberInput label="H" value={object.height} onChange={(v) => updateObject(object.id, { height: v })} />
         </div>
       </div>
+      <TextureSection object={object} />
     </div>
   );
 };
@@ -167,6 +214,7 @@ const BoxProperties: React.FC<{ object: Box }> = ({ object }) => {
           <NumberInput label="D" value={object.size[2]} onChange={(v) => handleSizeChange(2, v)} />
         </div>
       </div>
+      <TextureSection object={object} />
     </div>
   );
 };
