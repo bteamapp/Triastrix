@@ -19,9 +19,6 @@ export default defineConfig(({ mode }) => {
           // FIX: __dirname is not available in ES modules. Using import.meta.url is the modern standard.
           '@': fileURLToPath(new URL('.', import.meta.url)),
         }
-      },
-      build: {
-        chunkSizeWarningLimit: 200 // Sets the limit to 200 kB (0.2 MB)
-      },
+      }
     };
 });

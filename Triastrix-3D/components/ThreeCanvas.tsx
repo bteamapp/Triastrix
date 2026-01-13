@@ -2,9 +2,9 @@
 // The `@react-three/fiber` side-effect import, which augments the JSX namespace, has been moved to the top of the file.
 // This ensures that the type definitions are loaded before any other code is processed, correctly extending the JSX typings and resolving all related errors.
 import '@react-three/fiber';
-import React, { useRef, useMemo, useEffect } from 'react';
+import React, { useRef, useMemo, useEffect, Suspense } from 'react';
 import { Canvas, useThree } from '@react-three/fiber';
-import { OrbitControls, Grid, Line as DreiLine, Plane as DreiPlane, Text } from '@react-three/drei';
+import { OrbitControls, Grid, Line as DreiLine, Plane as DreiPlane, Text, useTexture } from '@react-three/drei';
 import * as THREE from 'three';
 import { useShallow } from 'zustand/react/shallow';
 import { useGeometryStore } from '../store/geometryStore';
@@ -144,6 +144,11 @@ function PlaneMesh({ object, points, isSelected, isCalculationInput }: { object:
   )
 }
 
+function TexturedMaterial({ url, color, opacity, transparent }: { url: string, color: string, opacity: number, transparent: boolean }) {
+    const texture = useTexture(url);
+    return <meshStandardMaterial map={texture} color={color} opacity={opacity}qh transparent={transparent} roughness={1} metalness={0} />;
+}
+
 function SphereMesh({ object, isSelected, isCalculationInput }: { object: Sphere, isSelected: boolean, isCalculationInput: boolean }) {
     const { isCalculatorOpen, calculationMode, addCalculationInput, setSelectedObjectId } = useGeometryStore(useShallow(state => ({
     isCalculatorOpen: state.isCalculatorOpen,
@@ -163,19 +168,33 @@ function SphereMesh({ object, isSelected, isCalculationInput }: { object: Sphere
     }
   };
 
+  const opacity = isSelected || isCalculationInput ? 1.0 : 0.8;
+  const color = isCalculationInput ? '#ffeb3b' : object.color;
+
   return (
     <mesh
       position={object.position}
       onClick={handleClick}
     >
       <sphereGeometry args={[object.radius, 32, 32]} />
-      <meshStandardMaterial 
-        color={isCalculationInput ? '#ffeb3b' : object.color} 
-        roughness={1} 
-        metalness={0} 
-        transparent 
-        opacity={isSelected || isCalculationInput ? 1.0 : 0.8}
-      />
+      {object.textureUrl ? (
+          <Suspense fallback={<meshStandardMaterial color={color} roughness={1} metalness={0} transparent opacity={opacity} />}>
+            <TexturedMaterial 
+                url={object.textureUrl} 
+                color={isCalculationInput ? '#ffeb3b' : '#ffffff'} 
+                opacity={1.0} 
+                transparent={false} 
+            />
+          </Suspense>
+      ) : (
+          <meshStandardMaterial 
+            color={color} 
+            roughness={1} 
+            metalness={0} 
+            transparent 
+            opacity={opacity}
+          />
+      )}
     </mesh>
   );
 }
@@ -204,19 +223,33 @@ function CylinderMesh({ object, isSelected, isCalculationInput }: { object: Cyli
     }
   };
 
+  const opacity = isSelected || isCalculationInput ? 1.0 : 0.8;
+  const color = isCalculationInput ? '#ffeb3b' : object.color;
+
   return (
     <mesh
       position={position}
       onClick={handleClick}
     >
       <cylinderGeometry args={[object.radius, object.radius, object.height, 32]} />
-      <meshStandardMaterial 
-        color={isCalculationInput ? '#ffeb3b' : object.color}
-        roughness={1}
-        metalness={0}
-        transparent
-        opacity={isSelected || isCalculationInput ? 1.0 : 0.8}
-      />
+      {object.textureUrl ? (
+          <Suspense fallback={<meshStandardMaterial color={color} roughness={1} metalness={0} transparent opacity={opacity} />}>
+             <TexturedMaterial 
+                url={object.textureUrl} 
+                color={isCalculationInput ? '#ffeb3b' : '#ffffff'} 
+                opacity={1.0} 
+                transparent={false} 
+             />
+          </Suspense>
+      ) : (
+          <meshStandardMaterial 
+            color={color}
+            roughness={1}
+            metalness={0}
+            transparent
+            opacity={opacity}
+          />
+      )}
     </mesh>
   );
 }
@@ -240,19 +273,33 @@ function BoxMesh({ object, isSelected, isCalculationInput }: { object: Box, isSe
     }
   };
 
+  const opacity = isSelected || isCalculationInput ? 1.0 : 0.8;
+  const color = isCalculationInput ? '#ffeb3b' : object.color;
+
   return (
     <mesh
       position={object.position}
       onClick={handleClick}
     >
       <boxGeometry args={object.size} />
-      <meshStandardMaterial 
-        color={isCalculationInput ? '#ffeb3b' : object.color}
-        roughness={1}
-        metalness={0}
-        transparent
-        opacity={isSelected || isCalculationInput ? 1.0 : 0.8}
-      />
+      {object.textureUrl ? (
+          <Suspense fallback={<meshStandardMaterial color={color}Hg roughness={1} metalness={0} transparent opacity={opacity} />}>
+            <TexturedMaterial 
+                url={object.textureUrl} 
+                color={isCalculationInput ? '#ffeb3b' : '#ffffff'} 
+                opacity={1.0} 
+                transparent={false} 
+            />
+          </Suspense>
+      ) : (
+          <meshStandardMaterial 
+            color={color}
+            roughness={1}
+            metalness={0}
+            transparent
+            opacity={opacity}
+          />
+      )}
     </mesh>
   );
 }

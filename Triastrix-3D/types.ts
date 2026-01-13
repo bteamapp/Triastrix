@@ -31,6 +31,7 @@ export interface Sphere extends BaseObject {
     type: 'sphere';
     position: [number, number, number];
     radius: number;
+    textureUrl?: string;
 }
 
 export interface Cylinder extends BaseObject {
@@ -38,12 +39,14 @@ export interface Cylinder extends BaseObject {
     position: [number, number, number]; // Center of the base
     radius: number;
     height: number;
+    textureUrl?: string;
 }
 
 export interface Box extends BaseObject {
     type: 'box';
     position: [number, number, number]; // Center of the box
     size: [number, number, number]; // width, height, depth
+    textureUrl?: string;
 }
 
 export type GeometricObject = Point | Line | Plane | Sphere | Cylinder | Box;
